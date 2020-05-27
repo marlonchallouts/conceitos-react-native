@@ -14,20 +14,20 @@ import {
 } from "react-native";
 
 export default function App() {
-  const [repositories, setRespositories] = useState([]);
+  const [repositories, setRepositories] = useState([]);
 
   useEffect(() => {
     api.get('/repositories').then(response => {
-      setRespositories(response.data);
+      setRepositories(response.data);
     });
   }, []);  
 
   async function handleLikeRepository(id) {
       api.post(`/repositories/${id}/like`);
 
-      api.get('/repositories').then(response => {
-      setRespositories(response.data);
-    });
+      const repositoryIndex = repositories.findIndex(repository => repository.id === id);
+      repositories[repositoryIndex].likes += 1; // Atualiza localmente o like
+      setRepositories([...repositories]);
   }
 
   return (
@@ -39,9 +39,9 @@ export default function App() {
               <Text style={styles.repository} key={repository.id} >{repository.title}</Text>
 
               <View style={styles.techsContainer}>
-                {repository.techs.map(tech => (
-                  <Text style={styles.tech} key={tech}>
-                    tech
+                {repository.techs.map((tech, key) => (
+                  <Text style={styles.tech} key={key}>
+                    {tech}
                   </Text>
 
                 ))}
@@ -51,15 +51,16 @@ export default function App() {
                 <Text
                   style={styles.likeText}
                   testID={`repository-likes-${repository.id}`}
+                  key={repository.id}
                 >
-                  {repository.likes} curtidas
+                  {repository.likes} curtida{repository.likes > 1 ? 's' : ''}
                 </Text>
               </View>
 
               <TouchableOpacity
                 style={styles.button}
-                onPress={() => handleLikeRepository(`${repository.id}`)}
-                testID={`like-button-{repository.id`}
+                onPress={() => handleLikeRepository(repository.id)}
+                testID={`like-button-${repository.id}`}
               >
                 <Text style={styles.buttonText}>Curtir</Text>
               </TouchableOpacity>
